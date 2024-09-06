@@ -102,6 +102,7 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     curl_easy_setopt(handle, CURLOPT_URL, req.url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L); /* do not verify */
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L); /* do not verify */
     curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, req.method.c_str());
 
     StringReader reader{};
