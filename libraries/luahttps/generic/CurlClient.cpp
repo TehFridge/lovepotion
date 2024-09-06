@@ -99,6 +99,11 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     if (!handle)
         throw std::runtime_error("Could not create curl request");
 
+    // Print request URL and method using printf
+    printf("Request URL: %s\n", req.url.c_str());
+    printf("Request Method: %s\n", req.method.c_str());
+
+    // Set Curl options for the request
     curl_easy_setopt(handle, CURLOPT_URL, req.url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L); /* do not verify */
@@ -116,18 +121,25 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
         curl_easy_setopt(handle, CURLOPT_READFUNCTION, stringReader);
         curl_easy_setopt(handle, CURLOPT_READDATA, &reader);
         curl_easy_setopt(handle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)req.postdata.length());
+
+        // Print request body if it exists
+        printf("Request Body: %s\n", req.postdata.c_str());
     }
 
     if (req.method == "HEAD")
         curl_easy_setopt(handle, CURLOPT_NOBODY, 1L);
 
-    // Curl doesn't copy memory, keep the strings around
+    // Print headers
+    printf("Request Headers:\n");
     std::vector<std::string> lines;
     for (auto& header : newHeaders)
     {
         std::stringstream line;
         line << header.first << ": " << header.second;
         lines.push_back(line.str());
+
+        // Print each header using printf
+        printf("%s: %s\n", header.first.c_str(), header.second.c_str());
     }
 
     curl_slist* sendHeaders = nullptr;
@@ -145,7 +157,16 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, headerWriter);
     curl_easy_setopt(handle, CURLOPT_HEADERDATA, &reply.headers);
 
-    curl_easy_perform(handle);
+    // Enable verbose mode
+    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+
+    CURLcode res = curl_easy_perform(handle);
+
+    // Print Curl perform result
+    if (res != CURLE_OK)
+    {
+        printf("Curl request failed: %s\n", curl_easy_strerror(res));
+    }
 
     if (sendHeaders)
         curl_slist_free_all(sendHeaders);
@@ -158,9 +179,14 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
 
     reply.body = body.str();
 
+    // Print response code and body using printf
+    printf("Response Code: %ld\n", reply.responseCode);
+    printf("Response Body:\n%s\n", reply.body.c_str());
+
     curl_easy_cleanup(handle);
     return reply;
 }
+
 
 CurlClient::Curl CurlClient::curl;
 
