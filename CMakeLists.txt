@@ -229,16 +229,6 @@ add_library(lua53
 )
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
-FetchContent_Declare(lua-https
-    GIT_REPOSITORY https://github.com/love2d/lua-https
-    GIT_TAG        main
-)
-
-FetchContent_GetProperties(lua-https)
-if(NOT lua-https_POPULATED)
-    FetchContent_Populate(lua-https)
-endif()
-
 add_library(lua-https STATIC
     ${lua-https_SOURCE_DIR}/src/common/config.h
     ${lua-https_SOURCE_DIR}/src/common/LibraryLoader.h
